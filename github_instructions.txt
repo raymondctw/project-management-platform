@@ -1,0 +1,15 @@
+# After creating your GitHub repository, run these commands to connect your local repository:
+
+# If you created a repository named "project-management" under your GitHub username:
+git remote add origin https://github.com/YOUR_GITHUB_USERNAME/project-management.git
+
+# Or if you're using SSH:
+# git remote add origin git@github.com:YOUR_GITHUB_USERNAME/project-management.git
+
+# Push your commits to GitHub:
+git push -u origin main
+
+# If your default branch is named "master" instead of "main", use:
+# git push -u origin master
+
+# You may be prompted to authenticate with GitHub. Follow the prompts to log in.
