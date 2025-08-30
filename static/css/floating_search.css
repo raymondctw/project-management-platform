@@ -1,0 +1,178 @@
+/* Floating Search Box Styles */
+.floating-search-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 2000;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 10vh;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+.floating-search-container {
+    width: 600px;
+    max-width: 90%;
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    animation: floatingSearchAppear 0.2s ease-out;
+}
+
+@keyframes floatingSearchAppear {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.floating-search-header {
+    padding: 12px;
+    border-bottom: 1px solid #333;
+}
+
+.floating-search-input-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.floating-search-icon {
+    position: absolute;
+    left: 10px;
+    color: #777;
+    font-size: 16px;
+}
+
+.floating-search-input {
+    width: 100%;
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 10px 10px 10px 35px;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.floating-search-input:focus {
+    border-color: #fda125;
+    box-shadow: 0 0 0 2px rgba(253, 161, 37, 0.25);
+}
+
+.floating-search-shortcut {
+    position: absolute;
+    right: 12px;
+    color: #777;
+    font-size: 12px;
+    background-color: #333;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.floating-search-results {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.floating-search-results-container {
+    padding: 8px 0;
+}
+
+.floating-search-empty-state {
+    padding: 24px;
+    text-align: center;
+    color: #aaa;
+}
+
+.floating-search-empty-state p {
+    margin-bottom: 4px;
+    font-size: 16px;
+}
+
+.floating-search-result-item {
+    padding: 8px 12px;
+    border-bottom: 1px solid #333;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.floating-search-result-item:hover {
+    background-color: #2a2a2a;
+}
+
+.floating-search-result-item h5 {
+    margin: 0 0 2px 0;
+    color: #fff;
+    font-size: 14px;
+}
+
+.floating-search-result-item p {
+    margin: 0;
+    color: #aaa;
+    font-size: 12px;
+}
+
+.floating-search-result-item .badge {
+    margin-left: 8px;
+}
+
+.floating-search-category {
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background-color: #222;
+}
+
+.floating-search-no-results {
+    padding: 24px;
+    text-align: center;
+    color: #aaa;
+}
+
+/* Show the search overlay when active */
+.floating-search-overlay.active {
+    display: flex;
+}
+
+/* Keyboard shortcut badge in navbar */
+.cmd-k-badge {
+    display: inline-flex;
+    align-items: center;
+    background-color: #333;
+    color: #aaa;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.cmd-symbol {
+    font-size: 14px;
+    margin-right: 2px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .floating-search-container {
+        width: 95%;
+    }
+    
+    .floating-search-overlay {
+        padding-top: 5vh;
+    }
+}

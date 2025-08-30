@@ -42,6 +42,14 @@ async def root(request: Request):
 async def dashboard(request: Request):
     return templates.TemplateResponse("dashboard.html", {"request": request})
 
+@app.get("/projects", response_class=HTMLResponse)
+async def projects(request: Request):
+    return templates.TemplateResponse("projects.html", {"request": request})
+
+@app.get("/project/{project_id}", response_class=HTMLResponse)
+async def project_detail(request: Request, project_id: int):
+    return templates.TemplateResponse("project_detail.html", {"request": request, "project_id": project_id})
+
 @app.get("/api")
 async def api_root():
     return {"message": "Welcome to the Project Management API"}
@@ -53,7 +61,7 @@ async def health_check():
 # Import and include routers
 from app.routers import projects, tasks, users, auth
 
-app.include_router(auth.router, tags=["authentication"])
+app.include_router(auth.router, prefix="/auth", tags=["authentication"])
 app.include_router(projects.router, prefix="/projects", tags=["projects"])
 app.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
 app.include_router(users.router, prefix="/users", tags=["users"])

@@ -10,9 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup logout functionality
     setupLogout();
     
-    // Load user information
-    loadUserInfo();
-    
     // Load dashboard data
     loadDashboardData();
 });
@@ -33,38 +30,14 @@ function setupLogout() {
     });
 }
 
-async function loadUserInfo() {
-    try {
-        const token = localStorage.getItem('access_token');
-        const response = await fetch('/users/me', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (response.ok) {
-            const userData = await response.json();
-            // Display username in the navbar
-            document.getElementById('username-display').textContent = userData.username;
-        } else {
-            // If unauthorized, redirect to login
-            if (response.status === 401) {
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('token_type');
-                window.location.href = '/';
-            }
-        }
-    } catch (error) {
-        console.error('Error loading user info:', error);
-    }
-}
+// User info is now loaded from navbar.js
 
 async function loadDashboardData() {
     const token = localStorage.getItem('access_token');
     
     try {
         // Load projects count
-        const projectsResponse = await fetch('/projects', {
+        const projectsResponse = await fetch('/projects/', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -79,7 +52,7 @@ async function loadDashboardData() {
         }
         
         // Load tasks count
-        const tasksResponse = await fetch('/tasks', {
+        const tasksResponse = await fetch('/tasks/', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -91,7 +64,7 @@ async function loadDashboardData() {
         }
         
         // Load users count
-        const usersResponse = await fetch('/users', {
+        const usersResponse = await fetch('/users/', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -166,3 +139,5 @@ function loadProjectsTable(projects) {
         tableBody.appendChild(row);
     });
 }
+
+// Search and keyboard functionality is now handled by navbar.js

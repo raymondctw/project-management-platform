@@ -2,8 +2,10 @@ from fastapi import APIRouter, HTTPException, status, Depends, Query
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
+from app.auth.token import get_current_active_user
 from app.database import get_db
 from app.models.task import Task
+from app.models.user import User
 from app.schemas.task import Task as TaskSchema
 from app.schemas.task import TaskCreate, TaskUpdate
 
@@ -15,7 +17,8 @@ async def get_tasks(
     project_id: Optional[int] = None,
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ):
     """
     Retrieve all tasks, optionally filtered by project_id.
@@ -31,7 +34,8 @@ async def get_tasks(
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=TaskSchema)
 async def create_task(
     task_data: TaskCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ):
     """
     Create a new task.
@@ -46,7 +50,8 @@ async def create_task(
 @router.get("/{task_id}", response_model=TaskSchema)
 async def get_task(
     task_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ):
     """
     Retrieve a specific task by ID.
@@ -61,7 +66,8 @@ async def get_task(
 async def update_task(
     task_id: int,
     task_data: TaskUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ):
     """
     Update a specific task.
@@ -82,7 +88,8 @@ async def update_task(
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_task(
     task_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ):
     """
     Delete a specific task.

@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('password', password);
             
             // Send login request
-            const response = await fetch('/token', {
+            const response = await fetch('/auth/token', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',

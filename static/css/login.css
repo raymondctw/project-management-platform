@@ -2,12 +2,17 @@ body {
     min-height: 100vh;
     display: flex;
     align-items: center;
-    background-color: #f8f9fa;
+    background-color: #121212;
+    color: #e0e0e0;
 }
 
 .card {
     border-radius: 10px;
     border: none;
+    background-color: #1e1e1e;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(0, 0, 0, 0.5);
+    border-top: 3px solid #fda125;
+    border-bottom: 3px solid #fda125;
 }
 
 .card-body {
@@ -15,29 +20,45 @@ body {
 }
 
 .btn-primary {
-    background-color: #4e73df;
-    border-color: #4e73df;
+    background-color: #fda125;
+    border-color: #fda125;
     padding: 0.75rem;
     font-weight: 600;
+    color: #000;
 }
 
 .btn-primary:hover {
-    background-color: #2e59d9;
-    border-color: #2653d4;
+    background-color: #e08c0e;
+    border-color: #e08c0e;
+    color: #000;
 }
 
 h2 {
-    color: #5a5c69;
+    color: #fda125;
     font-weight: 700;
     margin-bottom: 1.5rem;
 }
 
 .form-label {
     font-weight: 500;
-    color: #6e707e;
+    color: #e0e0e0;
+}
+
+.alert-danger {
+    background-color: #870e1e;
+    border-color: #700b19;
+    color: #fff;
+}
+
+.form-control {
+    background-color: #2a2a2a;
+    border-color: #333;
+    color: #e0e0e0;
 }
 
 .form-control:focus {
-    border-color: #bac8f3;
-    box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+    border-color: #fda125;
+    box-shadow: 0 0 0 0.25rem rgba(253, 161, 37, 0.25);
+    background-color: #2a2a2a;
+    color: #e0e0e0;
 }

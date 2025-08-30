@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Date, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -12,6 +12,9 @@ class Project(Base):
     name = Column(String, index=True)
     description = Column(String)
     status = Column(String, default="planning")
+    start_date = Column(Date, nullable=True)
+    end_date = Column(Date, nullable=True)
+    tags = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

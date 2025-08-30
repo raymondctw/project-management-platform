@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Management - Project Detail</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/floating_search.css') }}">
+    <style>
+        .kanban-column {
+            min-height: 500px;
+            border-radius: 0.25rem;
+        }
+        .task-list {
+            min-height: 120px;
+            position: relative;
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+        .task-card {
+            margin-bottom: 8px;
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .task-card:active {
+            cursor: grabbing;
+        }
+        .task-card.dragging {
+            opacity: 0.7;
+            transform: scale(1.02);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        .task-list.drag-over {
+            background-color: rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.2);
+        }
+        .empty-column-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #6c757d;
+            text-align: center;
+            width: 100%;
+            pointer-events: none; /* Allow clicks to pass through */
+            font-size: 0.75rem;
+        }
+        .task-card .card-header {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.75rem;
+        }
+        .add-task-btn {
+            width: 100%;
+            margin-top: 8px;
+            padding: 0.25rem;
+            font-size: 0.75rem;
+        }
+        .project-header {
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            border-radius: 0.25rem;
+        }
+        .project-info {
+            margin-bottom: 0.75rem;
+        }
+        .project-tag {
+            display: inline-block;
+            margin-right: 4px;
+            margin-bottom: 4px;
+            font-size: 0.7rem;
+            padding: 0.2em 0.5em;
+        }
+    </style>
+</head>
+<body class="bg-dark text-light">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <div class="d-flex justify-content-between align-items-center px-3 mb-4">
+                        <h4 style="color: #fda125;">Project Management</h4>
+                        <button id="sidebarCollapseBtn" class="btn btn-sm btn-outline-secondary d-none d-md-block">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard">
+                                <i class="bi bi-speedometer2 me-2"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/projects">
+                                <i class="bi bi-folder me-2"></i>
+                                <span>Projects</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="bi bi-list-task me-2"></i>
+                                <span>Tasks</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="bi bi-people me-2"></i>
+                                <span>Team</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <i class="bi bi-gear me-2"></i>
+                                <span>Settings</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <hr class="text-light">
+                    <div class="px-3">
+                        <button id="logout-btn" class="btn w-100 logout-btn">
+                            <i class="bi bi-box-arrow-right me-2"></i>
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-0">
+                <!-- Top Navbar -->
+                {% include 'components/navbar.html' %}
+                
+                <div class="px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2"><span id="project-title" style="color: #fda125;">Project Detail</span></h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <a href="/projects" class="btn btn-sm btn-outline-secondary me-2">
+                            <i class="bi bi-arrow-left"></i> Back to Projects
+                        </a>
+                        <button id="edit-project-btn" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Edit Project
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Project Info -->
+                <div class="project-header bg-dark border border-secondary">
+                    <div class="row project-info">
+                        <div class="col-md-8">
+                            <p id="project-description" class="mb-2">Loading project description...</p>
+                            <div id="project-tags" class="mb-2"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>Status:</strong>
+                                <span id="project-status" class="badge"></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>Start Date:</strong>
+                                <span id="project-start-date"></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong>End Date:</strong>
+                                <span id="project-end-date"></span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <strong>Created:</strong>
+                                <span id="project-created-date"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kanban Board -->
+                <h3 class="mt-4 mb-3">Tasks</h3>
+                <div class="row">
+                    <!-- To Do Column -->
+                    <div class="col-md-4 mb-4">
+                        <div class="kanban-column bg-dark border border-secondary p-2">
+                            <h5 class="text-center py-2 bg-secondary bg-opacity-25">To Do</h5>
+                            <div id="todo-tasks" class="task-list p-2" ondrop="window.drop(event, 'todo')" ondragover="window.allowDrop(event)">
+                                <!-- Tasks will be loaded here -->
+                            </div>
+                            <button class="btn btn-outline-secondary add-task-btn" data-status="todo">
+                                <i class="bi bi-plus-lg"></i> Add Task
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- In Progress Column -->
+                    <div class="col-md-4 mb-4">
+                        <div class="kanban-column bg-dark border border-secondary p-2">
+                            <h5 class="text-center py-2 bg-warning bg-opacity-25">In Progress</h5>
+                            <div id="in-progress-tasks" class="task-list p-2" ondrop="window.drop(event, 'in_progress')" ondragover="window.allowDrop(event)">
+                                <!-- Tasks will be loaded here -->
+                            </div>
+                            <button class="btn btn-outline-secondary add-task-btn" data-status="in_progress">
+                                <i class="bi bi-plus-lg"></i> Add Task
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Done Column -->
+                    <div class="col-md-4 mb-4">
+                        <div class="kanban-column bg-dark border border-secondary p-2">
+                            <h5 class="text-center py-2 bg-success bg-opacity-25">Done</h5>
+                            <div id="done-tasks" class="task-list p-2" ondrop="window.drop(event, 'done')" ondragover="window.allowDrop(event)">
+                                <!-- Tasks will be loaded here -->
+                            </div>
+                            <button class="btn btn-outline-secondary add-task-btn" data-status="done">
+                                <i class="bi bi-plus-lg"></i> Add Task
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal fade" id="taskModal" tabindex="-1" aria-labelledby="taskModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="taskModalLabel">New Task</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="task-form">
+                        <input type="hidden" id="task-id">
+                        <input type="hidden" id="task-status">
+                        <div class="mb-2">
+                            <label for="task-title" class="form-label">Task Title</label>
+                            <input type="text" class="form-control bg-dark text-light border-secondary" id="task-title" required>
+                        </div>
+                        <div class="mb-2">
+                            <label for="task-description" class="form-label">Description</label>
+                            <textarea class="form-control bg-dark text-light border-secondary" id="task-description" rows="2"></textarea>
+                        </div>
+                        <div class="mb-2">
+                            <label for="task-assignee" class="form-label">Assignee</label>
+                            <select class="form-select bg-dark text-light border-secondary" id="task-assignee">
+                                <option value="">Unassigned</option>
+                                <!-- Users will be loaded here -->
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label for="task-due-date" class="form-label">Due Date</label>
+                            <input type="date" class="form-control bg-dark text-light border-secondary" id="task-due-date">
+                        </div>
+                        <div class="mb-2">
+                            <label for="task-priority" class="form-label">Priority</label>
+                            <select class="form-select bg-dark text-light border-secondary" id="task-priority">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" id="save-task-btn">Save Task</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Edit Modal -->
+    <div class="modal fade" id="projectModal" tabindex="-1" aria-labelledby="projectModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-light">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title" id="projectModalLabel">Edit Project</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="project-form">
+                        <div class="mb-2">
+                            <label for="project-name" class="form-label">Project Name</label>
+                            <input type="text" class="form-control bg-dark text-light border-secondary" id="project-name" required>
+                        </div>
+                        <div class="mb-2">
+                            <label for="project-description" class="form-label">Description</label>
+                            <textarea class="form-control bg-dark text-light border-secondary" id="project-description-edit" rows="2"></textarea>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label for="project-start-date-edit" class="form-label">Start Date</label>
+                                <input type="date" class="form-control bg-dark text-light border-secondary" id="project-start-date-edit">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="project-end-date-edit" class="form-label">End Date</label>
+                                <input type="date" class="form-control bg-dark text-light border-secondary" id="project-end-date-edit">
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label for="project-status-edit" class="form-label">Status</label>
+                            <select class="form-select bg-dark text-light border-secondary" id="project-status-edit">
+                                <option value="planning">Planning</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label for="project-tags-edit" class="form-label">Tags (comma separated)</label>
+                            <input type="text" class="form-control bg-dark text-light border-secondary" id="project-tags-edit" placeholder="e.g. frontend, urgent, feature">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" id="save-project-btn">Save Project</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Floating Search Box -->
+    {% include 'components/floating_search.html' %}
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', path='/js/navbar.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/floating_search.js') }}"></script>
+    <script src="{{ url_for('static', path='/js/project_detail.js') }}"></script>
+</body>
+</html>

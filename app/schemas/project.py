@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, date
 from typing import List, Optional
 
 
@@ -7,6 +7,9 @@ class ProjectBase(BaseModel):
     name: str
     description: Optional[str] = None
     status: Optional[str] = "planning"
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    tags: Optional[str] = None
 
 
 class ProjectCreate(ProjectBase):
@@ -15,7 +18,11 @@ class ProjectCreate(ProjectBase):
 
 class ProjectUpdate(ProjectBase):
     name: Optional[str] = None
+    description: Optional[str] = None
     status: Optional[str] = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    tags: Optional[str] = None
 
 
 class Project(ProjectBase):
