@@ -1,70 +1,96 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 from typing import List, Optional
-from uuid import uuid4
+from sqlalchemy.orm import Session
 
-# Import schemas later
-# from app.schemas.task import Task, TaskCreate, TaskUpdate
+from app.database import get_db
+from app.models.task import Task
+from app.schemas.task import Task as TaskSchema
+from app.schemas.task import TaskCreate, TaskUpdate
 
 router = APIRouter()
 
-# Temporary in-memory storage
-tasks = []
 
-@router.get("/", response_model=List)
-async def get_tasks(project_id: Optional[str] = None):
+@router.get("/", response_model=List[TaskSchema])
+async def get_tasks(
+    project_id: Optional[int] = None,
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
     """
     Retrieve all tasks, optionally filtered by project_id.
     """
+    query = db.query(Task)
     if project_id:
-        return [task for task in tasks if task["project_id"] == project_id]
+        query = query.filter(Task.project_id == project_id)
+    
+    tasks = query.offset(skip).limit(limit).all()
     return tasks
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
-async def create_task(task_data: dict):
+
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=TaskSchema)
+async def create_task(
+    task_data: TaskCreate,
+    db: Session = Depends(get_db)
+):
     """
     Create a new task.
     """
-    new_task = {
-        "id": str(uuid4()),
-        "title": task_data.get("title"),
-        "description": task_data.get("description"),
-        "status": task_data.get("status", "todo"),
-        "priority": task_data.get("priority", "medium"),
-        "project_id": task_data.get("project_id"),
-        "assigned_to": task_data.get("assigned_to"),
-        "due_date": task_data.get("due_date"),
-    }
-    tasks.append(new_task)
-    return new_task
+    db_task = Task(**task_data.model_dump())
+    db.add(db_task)
+    db.commit()
+    db.refresh(db_task)
+    return db_task
 
-@router.get("/{task_id}")
-async def get_task(task_id: str):
+
+@router.get("/{task_id}", response_model=TaskSchema)
+async def get_task(
+    task_id: int,
+    db: Session = Depends(get_db)
+):
     """
     Retrieve a specific task by ID.
     """
-    for task in tasks:
-        if task["id"] == task_id:
-            return task
-    raise HTTPException(status_code=404, detail="Task not found")
+    db_task = db.query(Task).filter(Task.id == task_id).first()
+    if db_task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return db_task
 
-@router.put("/{task_id}")
-async def update_task(task_id: str, task_data: dict):
+
+@router.put("/{task_id}", response_model=TaskSchema)
+async def update_task(
+    task_id: int,
+    task_data: TaskUpdate,
+    db: Session = Depends(get_db)
+):
     """
     Update a specific task.
     """
-    for i, task in enumerate(tasks):
-        if task["id"] == task_id:
-            tasks[i].update(task_data)
-            return tasks[i]
-    raise HTTPException(status_code=404, detail="Task not found")
+    db_task = db.query(Task).filter(Task.id == task_id).first()
+    if db_task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    update_data = task_data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_task, key, value)
+    
+    db.commit()
+    db.refresh(db_task)
+    return db_task
+
 
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_task(task_id: str):
+async def delete_task(
+    task_id: int,
+    db: Session = Depends(get_db)
+):
     """
     Delete a specific task.
     """
-    for i, task in enumerate(tasks):
-        if task["id"] == task_id:
-            tasks.pop(i)
-            return
-    raise HTTPException(status_code=404, detail="Task not found")
+    db_task = db.query(Task).filter(Task.id == task_id).first()
+    if db_task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    db.delete(db_task)
+    db.commit()
+    return None
